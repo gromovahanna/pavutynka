@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>РУШІЙ: павутинка поточної ситуації</title>
+<style>
+:root{--bg:#fcfcfb;--card:#ffffff;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e1e0d9;--accent:#2a78d6;--warn:#d03b3b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1a19;--card:#232321;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--line:#383835;--accent:#3987e5;--warn:#e66767}}
+:root[data-theme="dark"]{--bg:#1a1a19;--card:#232321;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--line:#383835;--accent:#3987e5;--warn:#e66767}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:22px;font-weight:500;margin:0 0 4px}
+.sub{color:var(--ink2);font-size:14px;margin:0 0 16px}
+.chart{position:relative;height:420px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px}
+.legend{font-size:12px;color:var(--ink2);margin:8px 0 16px;display:flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:2px;background:var(--accent);display:inline-block}
+.weak{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:14px}
+.weak b{font-weight:500;color:var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.row label{font-weight:500;font-size:15px}
+select{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px 8px;min-width:64px}
+.note{font-size:13px;color:var(--ink2);margin:6px 0 0}
+h2{font-size:18px;font-weight:500;margin:24px 0 8px}
+textarea{width:100%;height:210px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical}
+.foot{font-size:12px;color:var(--muted);margin-top:16px}
+button{font:inherit;font-size:14px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>РУШІЙ: павутинка поточної ситуації</h1>
+<p class="sub">Завдання №4. Змінюйте значення біля осей, діаграма оновлюється одразу. Шкала: 0 – немає, 2 – добре, ? – ще не оцінено.</p>
+<div class="chart"><canvas id="radar" role="img" aria-label="Радарна діаграма з вісьмома осями поточної ситуації за шкалою від 0 до 2">Діаграма оцінок вісьмох осей; значення також наведені в текстовому підсумку нижче.</canvas></div>
+<div class="legend"><i></i>Оцінка групи (обране в цьому браузері зберігається автоматично)</div>
+<div class="weak" id="weak"></div>
+<div class="grid" id="ctl"></div>
+<h2>Текстовий підсумок</h2>
+<textarea id="sum" readonly aria-label="Підсумок оцінок для копіювання"></textarea>
+<button id="copy" type="button">Виділити все для копіювання</button>
+<p class="foot">Початкові оцінки попередні. Цифри й факти в підказках узято з новинних джерел за жовтень 2026, їх треба звірити з офіційними документами Мінветеранів перед тим, як ставити в презентацію.</p>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var AX=[
+["Лідерство та управління",1,"Є профільне міністерство, але напрямок «фізична активність як інтеграція» окремо ніхто не веде (перевірити). За повідомленням Інтерфакс-Україна, 70% ветеранів не задоволені роботою Мінветеранів."],
+["Політики та законодавство",1,"Мінветеранів ініціює єдині обов’язкові стандарти для фахівців із супроводу ветеранів, тобто вони ще формуються. Чи є акти саме про фізичну активність, треба перевірити."],
+["Фінансування",0.5,"Кошти програми «Ветеранський спорт» на 2026 рік вичерпано, жовтневого етапу не буде, формат на 2027 рік не визначено."],
+["Робоча сила",null,"Даних немає. Питання: скільки фізичних терапевтів і тренерів з адаптивного спорту вміють працювати з ветеранами."],
+["Надання послуг",1,"Держава будує ветеранські простори (у Чернівцях строки під загрозою), є партнерські «Простори турботи», розробляються центри сімейного відновлення."],
+["Технології",null,"Даних немає. Питання: обладнання для адаптивної активності, онлайн-опція."],
+["Інформаційні системи",1,"Програма «Ветеранський спорт» працює через «Дію» і показує обсяги попиту. Чи збирають дані про результат інтеграції, невідомо."],
+["Публічна думка",null,"Є недовіра ветеранів до державних інструментів. Ставлення цивільних до залучення в такі простори не досліджено."]
+];
+var KEY="rushii-radar-v1";
+var vals=AX.map(function(a){return a[1];});
+try{var s=localStorage.getItem(KEY);if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length===AX.length){vals=p;}}}catch(e){}
+function fmt(v){return v===null?"?":String(v).replace(".",",");}
+function cols(){var cs=getComputedStyle(document.documentElement);return{ink:cs.getPropertyValue("--ink2").trim()||"#52514e",line:cs.getPropertyValue("--line").trim()||"#e1e0d9",acc:cs.getPropertyValue("--accent").trim()||"#2a78d6",bg:cs.getPropertyValue("--card").trim()||"#ffffff"};}
+var chart;
+function build(){
+  var c=cols();
+  if(chart){chart.destroy();}
+  chart=new Chart(document.getElementById("radar"),{type:"radar",
+    data:{labels:AX.map(function(a){return a[0].split(" ");}),datasets:[{data:vals.slice(),borderColor:c.acc,backgroundColor:c.acc+"22",borderWidth:2,pointBackgroundColor:c.acc,pointBorderColor:c.bg,pointBorderWidth:2,pointRadius:5,spanGaps:true}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:2,ticks:{stepSize:0.5,color:c.ink,backdropColor:"transparent",font:{size:11}},grid:{color:c.line},angleLines:{color:c.line},pointLabels:{color:c.ink,font:{size:12}}}}}});
+}
+function summary(){
+  var lines=AX.map(function(a,i){return a[0]+": "+fmt(vals[i]);});
+  document.getElementById("sum").value="Поточна ситуація (шкала 0-2)\n"+lines.join("\n");
+  var rated=[];vals.forEach(function(v,i){if(v!==null){rated.push([v,i]);}});
+  var w=document.getElementById("weak");
+  if(!rated.length){w.textContent="Поки жодної осі не оцінено.";return;}
+  var min=Math.min.apply(null,rated.map(function(r){return r[0];}));
+  var names=rated.filter(function(r){return r[0]===min;}).map(function(r){return AX[r[1]][0];});
+  var un=vals.filter(function(v){return v===null;}).length;
+  w.innerHTML="Найслабша позиція: <b>"+names.join(", ")+"</b> ("+fmt(min)+"). Саме з неї починають аналіз першопричин («чотири чому»)."+(un?" Ще не оцінено осей: "+un+".":"");
+}
+function update(){
+  chart.data.datasets[0].data=vals.slice();chart.update();summary();
+  try{localStorage.setItem(KEY,JSON.stringify(vals));}catch(e){}
+}
+var ctl=document.getElementById("ctl");
+var OPTS=[["","?"],["0","0"],["0.5","0,5"],["1","1"],["1.5","1,5"],["2","2"]];
+AX.forEach(function(a,i){
+  var d=document.createElement("div");d.className="card";
+  var r=document.createElement("div");r.className="row";
+  var l=document.createElement("label");l.htmlFor="s"+i;l.textContent=a[0];
+  var s=document.createElement("select");s.id="s"+i;
+  OPTS.forEach(function(o){var op=document.createElement("option");op.value=o[0];op.textContent=o[1];s.appendChild(op);});
+  s.value=vals[i]===null?"":String(vals[i]);
+  s.onchange=function(){vals[i]=s.value===""?null:parseFloat(s.value);update();};
+  r.appendChild(l);r.appendChild(s);
+  var n=document.createElement("p");n.className="note";n.textContent=a[2];
+  d.appendChild(r);d.appendChild(n);ctl.appendChild(d);
+});
+document.getElementById("copy").onclick=function(){var t=document.getElementById("sum");t.focus();t.select();};
+build();summary();
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(){build();});}catch(e){}
+</script>
+</body>
+</html>
